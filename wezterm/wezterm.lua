@@ -1,8 +1,10 @@
 local wezterm = require 'wezterm'
 
-local act = wezterm.action
+-- local act = wezterm.action
 local config = wezterm.config_builder()
 local keys = {}
+
+config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1000 }
 
 local scheme_name = 'rose-pine'
 local selection_highlight = '#342d43'
@@ -38,25 +40,24 @@ config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
 
 wezterm.on("update-status", function(window, pane)
-    local left_status_text = string.format("[%s]", window:active_workspace())
-    local desired_padding = 1 -- Number of spaces to add as padding
-    local padded_left_status = wezterm.pad_left(left_status_text, #left_status_text + desired_padding)
-    local padded_both_status = wezterm.pad_right(padded_left_status, #padded_left_status + desired_padding)
-    window:set_left_status(padded_both_status)
+  local workspace_name = string.gsub(window:active_workspace(), "(.*[/\\])(.*)", "%2")
+  local status_text = string.format("[%s]", workspace_name)
+  local desired_padding = 1 -- Number of spaces to add as padding
+  local padded_left_status = wezterm.pad_left(status_text, #status_text + desired_padding)
+  local padded_both_status = wezterm.pad_right(padded_left_status, #padded_left_status + desired_padding)
+  window:set_left_status(padded_both_status)
 end)
-
--- wezterm.on('update-left-status', function(window, pane)
--- end)
 
 -- Workspace switcher plugin
 local workspace_switcher = wezterm.plugin.require("https://github.com/MLFlexer/smart_workspace_switcher.wezterm")
+workspace_switcher.zoxide_path = "/opt/homebrew/bin/zoxide"
 workspace_switcher.apply_to_config(config)
-
--- Keybindings
-table.insert(keys, { key = "s", mods = "CTRL|SHIFT", action = workspace_switcher.switch_workspace() })
-table.insert(keys, { key = "t", mods = "CTRL|SHIFT", action = act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) })
-table.insert(keys, { key = "[", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(1) })
-table.insert(keys, { key = "]", mods = "CTRL|SHIFT", action = act.SwitchWorkspaceRelative(-1) })
+config.default_workspace = "~"
+table.insert(keys, {
+  key = "s",
+  mods = "LEADER",
+  action = workspace_switcher.switch_workspace(),
+})
 
 config.keys = keys
 

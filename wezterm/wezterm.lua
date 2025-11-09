@@ -39,13 +39,38 @@ config.hide_tab_bar_if_only_one_tab = false
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
 
+local function expand_home_path(p)
+  return p:gsub("^~", os.getenv("HOME"))
+end
+
+local function get_path_basename(path)
+  return string.gsub(path, "(.*[/\\])(.*)", "%2")
+end
+
+local function get_git_branch(path)
+  local success, branch_name, stderr = wezterm.run_child_process({
+    "git", "-C", path, "rev-parse", "--abbrev-ref", "HEAD"
+  })
+  if not success then
+    return nil
+  else
+    return branch_name:gsub("^%s+", ""):gsub("%s+$", "")
+  end
+end
+
+local function set_around_padding(text, padding_size)
+  local padded_left_status = wezterm.pad_left(text, #text + padding_size)
+  return  wezterm.pad_right(padded_left_status, #padded_left_status + padding_size)
+end
+
 wezterm.on("update-status", function(window, pane)
-  local workspace_name = string.gsub(window:active_workspace(), "(.*[/\\])(.*)", "%2")
-  local status_text = string.format("[%s]", workspace_name)
-  local desired_padding = 1 -- Number of spaces to add as padding
-  local padded_left_status = wezterm.pad_left(status_text, #status_text + desired_padding)
-  local padded_both_status = wezterm.pad_right(padded_left_status, #padded_left_status + desired_padding)
-  window:set_left_status(padded_both_status)
+  local workspace = window:active_workspace()
+  window:set_left_status(
+    string.format(" [%s] ", get_path_basename(workspace))
+  )
+  local branch_name = get_git_branch(expand_home_path(workspace))
+  branch_name = branch_name and (" " .. branch_name .. " ") or ""
+  window:set_right_status(branch_name)
 end)
 
 -- Workspace switcher plugin

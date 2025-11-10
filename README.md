@@ -13,7 +13,7 @@ brew install --cask aerospace google-chrome wezterm
 
 
 ```
-brew install fzf git neovim nvm ripgrep tmux uv zoxide zsh-autosuggestions zsh-syntax-highlighting
+brew install fzf git neovim nvm ripgrep starship tmux uv zoxide zsh-autosuggestions zsh-syntax-highlighting
 
 ```
 

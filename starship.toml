@@ -1,0 +1,4 @@
+[custom.tztime]
+command = "date +\"%H:%M:%S\""
+when = "true"
+format = "[\\[$symbol($output)\\] ](green)"
